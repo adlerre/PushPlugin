@@ -13,10 +13,6 @@
 	<license>MIT</license>
 
 	<asset src="www/PushNotification.js" target="PushNotification.js" />
-
-	<engines>
-		<engine name="cordova" version=">=3.0.0" />
-	</engines>	
 	
 	<!-- android -->
 	<platform name="android">
