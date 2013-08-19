@@ -65,11 +65,10 @@
 			</feature>
 		</config-file>
 
-		<source-file src="src/ios/AppDelegate+notification.m" />
-		<source-file src="src/ios/PushPlugin.m" />
-
 		<header-file src="src/ios/AppDelegate+notification.h" />
+		<source-file src="src/ios/AppDelegate+notification.m" />
+		
 		<header-file src="src/ios/PushPlugin.h" />
-
+		<source-file src="src/ios/PushPlugin.m" />
 	</platform>
 </plugin>
