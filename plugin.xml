@@ -11,8 +11,10 @@
 	</description>
 
 	<license>MIT</license>
-
-	<asset src="www/PushNotification.js" target="PushNotification.js" />
+	
+	<js-module src="www/PushNotification.js" name="pushNotification">
+        <clobbers target="plugins.pushNotification" />
+    </js-module>
 	
 	<!-- android -->
 	<platform name="android">
