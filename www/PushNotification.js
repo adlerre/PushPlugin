@@ -1,4 +1,7 @@
 
+var argscheck = require('cordova/argscheck'),
+    exec = require('cordova/exec');
+
 var PushNotification = function() {
 };
 
@@ -55,11 +58,4 @@ PushNotification.prototype.setApplicationIconBadgeNumber = function(successCallb
     cordova.exec(successCallback, successCallback, "PushPlugin", "setApplicationIconBadgeNumber", [{badge: badge}]);
 };
 
-//-------------------------------------------------------------------
-
-if(!window.plugins) {
-    window.plugins = {};
-}
-if (!window.plugins.pushNotification) {
-    window.plugins.pushNotification = new PushNotification();
-}
+module.exports = new PushNotification();
