@@ -100,10 +100,6 @@
     [results setValue:token forKey:@"deviceToken"];
     
     #if !TARGET_IPHONE_SIMULATOR
-        // Get Bundle Info for Remote Registration (handy if you have more than one app)
-        [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"] forKey:@"appName"];
-        [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"appVersion"];
-        
         // Check what Notifications the user has turned on.  We registered for all three, but they may have manually disabled some or all of them.
         NSUInteger rntypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
 
@@ -147,13 +143,7 @@
         [results setValue:pushAlert forKey:@"pushAlert"];
         [results setValue:pushSound forKey:@"pushSound"];
 
-        // Get the users Device Model, Display Name, Token & Version Number
-        UIDevice *dev = [UIDevice currentDevice];
-        [results setValue:dev.name forKey:@"deviceName"];
-        [results setValue:dev.model forKey:@"deviceModel"];
-        [results setValue:dev.systemVersion forKey:@"deviceSystemVersion"];
-
-		[self successWithMessage:[NSString stringWithFormat:@"%@", token]];
+		[self successWithDictionary:results];
     #endif
 }
 
@@ -199,6 +189,13 @@
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badge];
     
     [self successWithMessage:[NSString stringWithFormat:@"app badge count set to %d", badge]];
+}
+
+-(void)successWithDictionary:(NSDictionary *)dictonary
+{
+    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictonary];
+    
+    [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
 }
 
 -(void)successWithMessage:(NSString *)message

@@ -148,7 +148,7 @@ In this example, be sure and substitute your own senderID. Get your senderID by 
 	if (device.platform == 'android' || device.platform == 'Android') {
 		pushNotification.register(successHandler, errorHandler,{"senderID":"replace_with_sender_id","ecb":"onNotificationGCM"});
 	} else {
-		pushNotification.register(tokenHandler, errorHandler {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});
+		pushNotification.register(resultHandler, errorHandler {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});
 	}
 
 **successHandler** - called when a plugin method returns without error
@@ -167,10 +167,14 @@ In this example, be sure and substitute your own senderID. Get your senderID by 
 	
 **tokenHandler (iOS ony)** - called when the device has registeredwith a unique device token.
 
-	function tokenHandler (result) {
+	function resultHandler (result) {
 		// Your iOS push server needs to know the token before it can push to this device
 		// here is where you might want to send it the token for later use.
-		alert('device token = '+result)
+		alert('device token = '+result.deviceToken)
+		// What Registered Types are turned on. (can be switched off from user)
+		alert('push alert: '+result.pushAlert);
+		alert('push badge: '+result.pushBadge);
+		alert('push sound: '+result.pushSound);
 	}
 
 **senderID (Android only)** - This is the Google project ID you need to obtain by [registering your application](http://developer.android.com/guide/google/gcm/gs.html) for GCM

@@ -36,6 +36,12 @@ var PushNotification = function() {
      *                errorCallback
      * @param {Object}
      *                options
+     *                
+     * @return 
+     *		Object.deviceToken {String}: the device token 
+     * 		Object.pushAlert {String}: if alert enabled or disabled by user 
+     * 		Object.pushBadge {String}: if badge enabled or disabled by user
+     * 		Object.pushSound {String}: if sound enabled or disabled by user
      */
     this.register = function(successCallback, errorCallback, options) {
 	argscheck.checkArgs('fF', 'PushPlugin.register', arguments);
