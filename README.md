@@ -33,79 +33,6 @@ This plugin is for use with [Cordova](http://incubator.apache.org/cordova/), and
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 
-## Manual Installation for Android
-
-
-1) copy the contents of **src/android/com/** to your project's **src/com/** folder. 
-   copy the contents of **libs/** to your **libs/** folder.
-   The final hirearchy will likely look something like this;
-
-	{project_folder}
-		libs
-			gcm.jar
-			android-support-v13.jar
-			cordova-2.7.0.jar
-		src
-			com
-				plugin
-					gcm
-						CordovaGCMBroadcastReceiver.java
-						GCMIntentService.java
-						PushHandlerActivity.java
-						PushPlugin.java						
-				{company_name}
-					{intent_name}
-						{intent_name}.java						
-
-2) Modify your **AndroidManifest.xml** and add the following lines to your manifest tag:
-
-			<uses-permission android:name="android.permission.GET_TASKS" />
-			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-			<uses-permission android:name="android.permission.GET_ACCOUNTS" />
-			<uses-permission android:name="android.permission.WAKE_LOCK" />
-			<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-			<permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-			<uses-permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" />
-
-
-3) Modify your **AndroidManifest.xml** and add the following **activity**, **receiver** and **service** tags to your **application** section. (See the Sample_AndroidManifest.xml file in the Example folder.)
-
-			<activity android:name="com.plugin.gcm.PushHandlerActivity"/>
-			<receiver android:name="com.plugin.gcm.CordovaGCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
-				<intent-filter>
-					<action android:name="com.google.android.c2dm.intent.RECEIVE" />
-					<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-					<category android:name="$PACKAGE_NAME" />
-				</intent-filter>
-			</receiver>
-			<service android:name="com.plugin.gcm.GCMIntentService" />
-
-4) Modify your **res/xml/config.xml** to include the following line in order to tell Cordova to include this plugin and where it can be found: (See the Sample_config.xml file in the Example folder)
-
-	<plugin name="PushPlugin" value="com.plugin.gcm.PushPlugin" />
-
-5) Add the **PushNotification.js** script to your assets/www folder (or javascripts folder, wherever you want really) and reference it in your main index.html file. This file's usage is described in the **Plugin API** section below.
-
-    <script type="text/javascript" charset="utf-8" src="PushNotification.js"></script>
-
-## Manual Installation for iOS
-
-Copy the following files to your project's Plugins folder:
-
-	AppDelegate+notification.h
-	AppDelegate+notification.m
-	PushPlugin.h
-	PushPlugin.m
-	
-Add a reference for this plugin to the plugins section in **config.xml**:
-
-	<plugin name="PushPlugin" value="PushPlugin" />
-
-
-Add the **PushNotification.js** script to your assets/www folder (or javascripts folder, wherever you want really) and reference it in your main index.html file.
-
-    <script type="text/javascript" charset="utf-8" src="PushNotification.js"></script>
-
 ## Automatic Installation
 This plugin is based on [plugman](https://github.com/apache/cordova-plugman). to install it to your app,
 simply execute plugman as follows;
@@ -122,7 +49,13 @@ For additional info, take a look at the [Plugman Documentation](https://github.c
 Installation with the [Cordova Command-Line Interface (CLI)](http://docs.phonegap.com/en/3.0.0/guide_cli_index.md.html#The%20Command-line%20Interface) in 3.0.0 or later is even easier:
 
 ```
-cordova plugins add https://github.com/phonegap-build/PushPlugin
+cordova plugins add https://github.com/adlerre/PushPlugin
+```
+
+or for Phonegap 3.0
+
+```
+phonegap local plugins add https://github.com/adlerre/PushPlugin
 ```
 
 ## Plugin API
@@ -165,7 +98,7 @@ In this example, be sure and substitute your own senderID. Get your senderID by 
 		alert('error = '+error)
 	}
 	
-**tokenHandler (iOS ony)** - called when the device has registeredwith a unique device token.
+**resultHandler (iOS ony)** - called when the device has registeredwith a unique device token.
 
 	function resultHandler (result) {
 		// Your iOS push server needs to know the token before it can push to this device
