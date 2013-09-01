@@ -49,13 +49,13 @@ For additional info, take a look at the [Plugman Documentation](https://github.c
 Installation with the [Cordova Command-Line Interface (CLI)](http://docs.phonegap.com/en/3.0.0/guide_cli_index.md.html#The%20Command-line%20Interface) in 3.0.0 or later is even easier:
 
 ```
-cordova plugins add https://github.com/adlerre/PushPlugin
+cordova plugin add https://github.com/adlerre/PushPlugin
 ```
 
 or for Phonegap 3.0
 
 ```
-phonegap local plugins add https://github.com/adlerre/PushPlugin
+phonegap local plugin add https://github.com/adlerre/PushPlugin
 ```
 
 ## Plugin API
