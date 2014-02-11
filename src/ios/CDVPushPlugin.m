@@ -23,7 +23,7 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "PushPlugin.h"
+#import "CDVPushPlugin.h"
 
 @implementation PushPlugin
 
@@ -91,6 +91,14 @@
 		[self notificationReceived];	// go ahead and process it
 }
 
+/*
+- (void)isEnabled:(NSMutableArray *)arguments withDict:(NSMutableDictionary *)options {
+    UIRemoteNotificationType type = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+    NSString *jsStatement = [NSString stringWithFormat:@"navigator.PushPlugin.isEnabled = %d;", type != UIRemoteNotificationTypeNone];
+    NSLog(@"JSStatement %@",jsStatement);
+}
+*/
+
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
 
     NSMutableDictionary *results = [NSMutableDictionary dictionary];
@@ -100,6 +108,10 @@
     [results setValue:token forKey:@"deviceToken"];
     
     #if !TARGET_IPHONE_SIMULATOR
+        // Get Bundle Info for Remote Registration (handy if you have more than one app)
+        [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"] forKey:@"appName"];
+        [results setValue:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"appVersion"];
+        
         // Check what Notifications the user has turned on.  We registered for all three, but they may have manually disabled some or all of them.
         NSUInteger rntypes = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
 
@@ -112,38 +124,27 @@
         // one is actually disabled. So we are literally checking to see if rnTypes matches what is turned on, instead of by number. The "tricky" part is that the
         // single notification types will only match if they are the ONLY one enabled.  Likewise, when we are checking for a pair of notifications, it will only be
         // true if those two notifications are on.  This is why the code is written this way
-        if(rntypes == UIRemoteNotificationTypeBadge){
-          pushBadge = @"enabled";
+        if(rntypes & UIRemoteNotificationTypeBadge){
+            pushBadge = @"enabled";
         }
-        else if(rntypes == UIRemoteNotificationTypeAlert){
-          pushAlert = @"enabled";
+        if(rntypes & UIRemoteNotificationTypeAlert) {
+            pushAlert = @"enabled";
         }
-        else if(rntypes == UIRemoteNotificationTypeSound){
-          pushSound = @"enabled";
-        }
-        else if(rntypes == ( UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert)){
-          pushBadge = @"enabled";
-          pushAlert = @"enabled";
-        }
-        else if(rntypes == ( UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)){
-          pushBadge = @"enabled";
-          pushSound = @"enabled";
-        }
-        else if(rntypes == ( UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)){
-          pushAlert = @"enabled";
-          pushSound = @"enabled";
-        }
-        else if(rntypes == ( UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)){
-          pushBadge = @"enabled";
-          pushAlert = @"enabled";
-          pushSound = @"enabled";
+        if(rntypes & UIRemoteNotificationTypeSound) {
+            pushSound = @"enabled";
         }
 
         [results setValue:pushBadge forKey:@"pushBadge"];
         [results setValue:pushAlert forKey:@"pushAlert"];
         [results setValue:pushSound forKey:@"pushSound"];
 
-		[self successWithDictionary:results];
+        // Get the users Device Model, Display Name, Token & Version Number
+        UIDevice *dev = [UIDevice currentDevice];
+        [results setValue:dev.name forKey:@"deviceName"];
+        [results setValue:dev.model forKey:@"deviceModel"];
+        [results setValue:dev.systemVersion forKey:@"deviceSystemVersion"];
+
+		[self successWithMessage:[NSString stringWithFormat:@"%@", token]];
     #endif
 }
 
@@ -157,47 +158,65 @@
 
     if (notificationMessage && self.callback)
     {
-        NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[notificationMessage objectForKey:@"aps"]
-                                                           options:0
-                                                             error:&error];
-        
-        if (!jsonData) {
-            NSLog(@"Error parsing the notification message: %@", error);
-        } else {
-            NSString *jsonStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            NSLog(@"Msg: %@", jsonStr);
-            NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", self.callback, jsonStr];
-            [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
+        NSMutableString *jsonStr = [NSMutableString stringWithString:@"{"];
+
+        [self parseDictionary:notificationMessage intoJSON:jsonStr];
+
+        if (isInline)
+        {
+            [jsonStr appendFormat:@"foreground:\"%d\"", 1];
+            isInline = NO;
         }
+		else
+            [jsonStr appendFormat:@"foreground:\"%d\"", 0];
+        
+        [jsonStr appendString:@"}"];
+
+        NSLog(@"Msg: %@", jsonStr);
+
+        NSString * jsCallBack = [NSString stringWithFormat:@"%@(%@);", self.callback, jsonStr];
+        [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
         
         self.notificationMessage = nil;
     }
-    else{
-        NSLog(@"An error was encountered processing the notification\nNotificationMessage: %@\nCallback: %@", notificationMessage, self.callback);
+}
+
+// reentrant method to drill down and surface all sub-dictionaries' key/value pairs into the top level json
+-(void)parseDictionary:(NSDictionary *)inDictionary intoJSON:(NSMutableString *)jsonString
+{
+    NSArray         *keys = [inDictionary allKeys];
+    NSString        *key;
+    
+    for (key in keys)
+    {
+        id thisObject = [inDictionary objectForKey:key];
+    
+        if ([thisObject isKindOfClass:[NSDictionary class]])
+            [self parseDictionary:thisObject intoJSON:jsonString];
+        else if ([thisObject isKindOfClass:[NSString class]])
+             [jsonString appendFormat:@"\"%@\":\"%@\",",
+              key,
+              [[[[inDictionary objectForKey:key]
+                stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"]
+                 stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]
+                 stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
+        else {
+            [jsonString appendFormat:@"\"%@\":\"%@\",", key, [inDictionary objectForKey:key]];
+        }
     }
 }
 
-- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand*)command; {
-  DLog(@"setApplicationIconBadgeNumber:%@\n", command.arguments);
-    
+- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand *)command {
+
     self.callbackId = command.callbackId;
-    
+
     NSMutableDictionary* options = [command.arguments objectAtIndex:0];
-    
     int badge = [[options objectForKey:@"badge"] intValue] ?: 0;
+
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badge];
-    
+
     [self successWithMessage:[NSString stringWithFormat:@"app badge count set to %d", badge]];
 }
-
--(void)successWithDictionary:(NSDictionary *)dictonary
-{
-    CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictonary];
-    
-    [self.commandDelegate sendPluginResult:commandResult callbackId:self.callbackId];
-}
-
 -(void)successWithMessage:(NSString *)message
 {
     CDVPluginResult *commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:message];

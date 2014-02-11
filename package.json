@@ -1,0 +1,12 @@
+{
+    "version": "2.1.1",
+    "name": "org.apache.cordova.pushplugin",
+    "cordova_name": "PushPlugin",
+    "description": "Cordova Push Plugin",
+    "license": "MIT",
+    "keywords": [
+        "cordova",
+        "pushplugin"
+    ],
+    "engines": []
+}
