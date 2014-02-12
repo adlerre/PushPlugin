@@ -14,7 +14,6 @@
 	
 	<js-module src="www/PushNotification.js" name="pushNotification">
         <clobbers target="navigator.pushNotification" />
-        <clobbers target="plugins.pushNotification" />
     </js-module>
     
 	<engines>
