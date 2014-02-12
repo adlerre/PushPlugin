@@ -68,7 +68,7 @@ First create the plugin instance variable.
 	
 When deviceReady fires, get the plugin reference
 
-	pushNotification = window.plugins.pushNotification;
+	pushNotification = navigator.pushNotification;
 	
 #### register
 This should be called as soon as the device becomes ready. On success, you will get a call to tokenHandler (iOS), or  onNotificationGCM (Android), allowing you to obtain the device token or registration ID, respectively. Those values will typically get posted to your intermediary push server so it knows who it can send notifications to.
@@ -79,9 +79,9 @@ For Android, If you have not already done so, you'll need to set up a Google API
 In this example, be sure and substitute your own senderID. Get your senderID by signing into to your [google dashboard](https://code.google.com/apis/console/). The senderID is found at **Overview->Dashboard->Project Number**.
 
 	if (device.platform == 'android' || device.platform == 'Android') {
-		navigator.pushNotification.register(successHandler, errorHandler,{"senderID":"replace_with_sender_id","ecb":"onNotificationGCM"});
+		pushNotification.register(successHandler, errorHandler,{"senderID":"replace_with_sender_id","ecb":"onNotificationGCM"});
 	} else {
-		navigator.pushNotification.register(resultHandler, errorHandler {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});
+		pushNotification.register(resultHandler, errorHandler {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});
 	}
 
 **successHandler** - called when a plugin method returns without error
@@ -126,7 +126,7 @@ In this example, be sure and substitute your own senderID. Get your senderID by 
 		}
 	  
 		if (event.badge) {
-			navigator.pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
+			pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
 		}
 	}
 
@@ -187,7 +187,7 @@ Also make note of the **payload** object. Since the Android notification data mo
 #### unregister
 You will typically call this when your app is exiting, to cleanup any used resources. Its not strictly necessary to call it, and indeed it may be desireable to NOT call it if you are debugging your intermediarry push server. When you call unregister(), the current token for a particular device will get invalidated, and the next call to register() will return a new token. If you do NOT call unregister(), the last token will remain in effect until it is invalidated for some reason at the GCM side. Since such invalidations are beyond your control, its recommended that, in a production environment, that you have a matching unregister() call, for every call to register(), and that your server updates the devices' records each time.
 
-	navigator.pushNotification.unregister(successHandler, errorHandler);
+	pushNotification.unregister(successHandler, errorHandler);
 	
 You'll probably want to trap on the **backbutton** event and only call this when the home page is showing. Remember, the back button on android is not the same as the Home button. When you hit the back button from the home page, your activity gets dismissed. Here is an example of how to trap the backbutton event;
 
@@ -201,7 +201,7 @@ You'll probably want to trap on the **backbutton** event and only call this when
 			if( $("#home").length > 0)
 			{
 				e.preventDefault();
-				navigator.pushNotification.unregister(successHandler, errorHandler);
+				pushNotification.unregister(successHandler, errorHandler);
 				navigator.app.exitApp();
 			}
 			else
@@ -227,7 +227,7 @@ For the above to work, make sure the content for your home page is wrapped in an
 #### setApplicationIconBadgeNumber (iOS only)
 set the badge count visible when the app is not running
 	
-	navigator.pushNotification.setApplicationIconBadgeNumber(successCallback, errorCallback, badgeCount);
+	pushNotification.setApplicationIconBadgeNumber(successCallback, errorCallback, badgeCount);
 
 **badgeCount** -  an integer indicating what number should show up in the badge. Passing 0 will clear the badge.
 
